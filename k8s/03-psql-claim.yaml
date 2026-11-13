@@ -1,0 +1,13 @@
+# Demande de stockage exprimée par l'application : « 1 Gi en lecture/écriture, classe manual ».
+apiVersion: v1
+kind: # TODO : quel type d'objet ?
+metadata:
+  name: psql-pvc
+  namespace: students
+spec:
+  storageClassName: # TODO : la même classe que le PersistentVolume
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: # TODO

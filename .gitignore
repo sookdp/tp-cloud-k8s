@@ -1,0 +1,3 @@
+# Fichiers locaux à ne jamais versionner
+.env
+node_modules/

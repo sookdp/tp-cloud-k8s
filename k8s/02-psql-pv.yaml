@@ -1,0 +1,15 @@
+# Volume persistant provisionné « à la main » par l'administrateur (provisionnement statique).
+# Un PersistentVolume est un objet du cluster : il n'appartient à aucun namespace.
+apiVersion: v1
+kind: # TODO : quel type d'objet ?
+metadata:
+  name: psql-pv
+spec:
+  storageClassName: manual        # doit être identique dans le PVC pour que la liaison se fasse
+  capacity:
+    storage: # TODO : 1 Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: # TODO # les données sont conservées quand le PVC est supprimé
+  hostPath:
+    path: /data/psql-data         # répertoire du nœud ; sous Minikube, /data survit aux redémarrages

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Étudiants</title>
+  <!-- Page volontairement autonome : aucune dépendance à un CDN, elle fonctionne sans accès Internet. -->
+  <style>
+    :root { --blue: #0b2d4a; --cyan: #007abd; --yellow: #feb536; --line: #d5e2ec; --bg: #f3f8fb; --ink: #22313f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); }
+    header { background: var(--blue); color: #fff; padding: 20px 16px; border-bottom: 4px solid var(--yellow); }
+    header div, main { max-width: 760px; margin: 0 auto; }
+    h1 { margin: 0; font-size: 1.6rem; }
+    main { padding: 20px 16px 40px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+    .chip { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: .9rem; }
+    .chip b { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--cyan); }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+    th { background: #e6f0f7; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
+    td:first-child, th:first-child { width: 80px; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: 0; }
+    form { display: flex; gap: 8px; margin-top: 16px; }
+    input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+    button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--cyan); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    button:hover { background: #00669e; }
+    #message { margin: 0 0 16px; padding: 12px 14px; border-radius: 8px; background: #fde8e6; border: 1px solid #f3b4ad; color: #8a1f14; }
+    #message[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <header><div><h1>Liste des étudiants</h1></div></header>
+  <main>
+    <p class="meta">
+      <span class="chip">Servi par le conteneur <b id="hostname">…</b></span>
+      <span class="chip">Version <b id="version">…</b></span>
+    </p>
+    <p id="message" role="alert" hidden></p>
+    <table>
+      <thead><tr><th>id</th><th>name</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="2">Chargement…</td></tr></tbody>
+    </table>
+    <form id="add">
+      <input id="name" name="name" placeholder="Nom d'un nouvel étudiant" maxlength="100" required aria-label="Nom d'un nouvel étudiant">
+      <button type="submit">Ajouter</button>
+    </form>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function showError(text) {
+      $('message').textContent = text;
+      $('message').hidden = !text;
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch('/students');
+        const data = await response.json();
+        $('hostname').textContent = data.hostname || '?';
+        $('version').textContent = data.version || '?';
+        if (!response.ok) {
+          $('rows').innerHTML = '<tr><td colspan="2">Aucune donnée</td></tr>';
+          return showError(data.error || 'Erreur inattendue');
+        }
+        showError('');
+        $('rows').replaceChildren(...data.students.map((s) => {
+          const tr = document.createElement('tr');
+          tr.append(Object.assign(document.createElement('td'), { textContent: s.id }),
+                    Object.assign(document.createElement('td'), { textContent: s.name }));
+          return tr;
+        }));
+      } catch (err) {
+        showError('Le service web ne répond pas');
+      }
+    }
+
+    $('add').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const response = await fetch('/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: $('name').value }),
+      });
+      if (response.ok) $('name').value = '';
+      await refresh();
+      if (!response.ok) showError((await response.json()).error || 'Ajout impossible');
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

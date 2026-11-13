@@ -1,0 +1,13 @@
+# Adresse stable et nom DNS « postgres » devant le pod de la base, accessible uniquement depuis le cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: students
+spec:
+  type: # TODO : la base ne doit être joignable que depuis l'intérieur du cluster
+  selector:
+    # TODO : cibler les pods de la base (voir les labels du Deployment postgres)
+  ports:
+    - port: # TODO
+      targetPort: # TODO

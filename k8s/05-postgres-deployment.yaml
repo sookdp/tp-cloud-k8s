@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: students
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate              # un seul pod peut utiliser le volume : on arrête l'ancien avant de créer le nouveau
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          envFrom:                # injecte TOUTES les clés du ConfigMap et du Secret comme variables d'environnement
+            - configMapRef:
+                name: postgres-config
+            - secretRef:
+                name: postgres-secret
+          volumeMounts:
+            - name: psql-storage
+              mountPath: /var/lib/postgresql/data
+            # TODO 1 : monter le volume init-sql dans /docker-entrypoint-initdb.d
+            #          (scripts exécutés à la première initialisation de la base)
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: psql-storage
+          # TODO 2 : ce volume doit utiliser le PersistentVolumeClaim psql-pvc
+        - name: init-sql
+          configMap:
+            name: postgres-init

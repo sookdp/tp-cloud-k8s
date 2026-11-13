@@ -1,0 +1,73 @@
+# Headlamp : interface web pour Kubernetes (projet kubernetes-sigs, successeur du Kubernetes Dashboard).
+# Manifeste dérivé du manifeste officiel, avec une version d'image figée :
+#   https://raw.githubusercontent.com/kubernetes-sigs/headlamp/main/kubernetes-headlamp.yaml
+# Documentation : https://headlamp.dev/docs/latest/installation/in-cluster/
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: headlamp-admin
+  namespace: kube-system
+---
+# Droits du compte utilisé pour se connecter à Headlamp.
+# cluster-admin convient à un cluster de TP ; en production, on lie un rôle restreint (lecture seule, un namespace...).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: headlamp-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: headlamp-admin
+    namespace: kube-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: headlamp
+  namespace: kube-system
+spec:
+  selector:
+    k8s-app: headlamp
+  ports:
+    - port: 80
+      targetPort: 4466
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: headlamp
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: headlamp
+  template:
+    metadata:
+      labels:
+        k8s-app: headlamp
+    spec:
+      containers:
+        - name: headlamp
+          image: ghcr.io/headlamp-k8s/headlamp:v0.46.0
+          args:
+            - "-in-cluster"
+            - "-plugins-dir=/headlamp/plugins"
+          ports:
+            - containerPort: 4466
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+      nodeSelector:
+        kubernetes.io/os: linux

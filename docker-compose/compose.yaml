@@ -1,0 +1,40 @@
+# Application « students » : une base PostgreSQL et un service web - À COMPLÉTER (TP2, partie 3)
+# Référence : https://docs.docker.com/reference/compose-file/
+name: students
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      # Les valeurs viennent du fichier .env (copie de .env.example), jamais du fichier Compose.
+      POSTGRES_DB: ${POSTGRES_DB:?Copiez .env.example vers .env}
+      POSTGRES_USER: # TODO 1
+      POSTGRES_PASSWORD: # TODO 1
+    volumes:
+      # TODO 2 : monter le volume nommé postgres-data sur le répertoire de données de PostgreSQL
+      # Bind mount : exécuté automatiquement à la première initialisation d'un volume vide.
+      - ../db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  students:
+    build:
+      context: ../web
+      args:
+        APP_VERSION: "1.0"
+    image: students:1.0
+    # TODO 3 : ne démarrer ce service que lorsque postgres est « healthy » (depends_on)
+    environment:
+      DB_HOST: # TODO 4 : sous quel nom la base est-elle joignable sur le réseau du projet ?
+      DB_NAME: # TODO 4
+      DB_USER: # TODO 4
+      DB_PASS: # TODO 4
+    ports:
+      - # TODO 5 : publier le port 8000 du conteneur sur le port 8080 de la machine
+    restart: unless-stopped
+
+# TODO 6 : déclarer le volume nommé postgres-data

@@ -1,0 +1,5 @@
+# Un namespace isole les objets du TP : tout se supprime d'un coup avec « kubectl delete namespace students ».
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: students

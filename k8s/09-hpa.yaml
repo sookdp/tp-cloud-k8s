@@ -1,0 +1,24 @@
+# Ajuste automatiquement le nombre de pods entre 2 et 6 pour viser 50 % d'utilisation CPU
+# (pourcentage calculé par rapport aux requests du conteneur : 50 % de 100m = 50m par pod en moyenne).
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: students-web
+  namespace: students
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: students-web
+  minReplicas: # TODO
+  maxReplicas: # TODO
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: # TODO
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60   # 300 s par défaut ; réduit pour observer la décrue pendant le TP

@@ -1,0 +1,14 @@
+# Expose l'application web hors du cluster, sur le port 30080 de chaque nœud.
+apiVersion: v1
+kind: Service
+metadata:
+  name: students-web
+  namespace: students
+spec:
+  type: # TODO : le service doit être joignable depuis l'extérieur du cluster, sur un port du nœud
+  selector:
+    app: students-web
+  ports:
+    - port: # TODO : 80, port du Service à l'intérieur du cluster
+      targetPort: # TODO : port d'écoute du conteneur
+      nodePort: 30080           # port ouvert sur le nœud (plage 30000-32767)

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: students-web
+  namespace: students
+  labels:
+    app: students-web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: students-web
+  template:
+    metadata:
+      labels:
+        app: students-web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000           # utilisateur « node » de l'image
+      containers:
+        - name: students-web
+          image: students:1.0
+          imagePullPolicy: IfNotPresent   # l'image est construite localement, elle n'existe dans aucun registre
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              value: postgres     # nom DNS du Service PostgreSQL
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_DB
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            # TODO 1 : DB_PASS doit prendre la valeur de la clé POSTGRES_PASSWORD du Secret postgres-secret
+          # TODO 2 (partie 3.2) : ajouter une readinessProbe HTTP sur /ready et une livenessProbe HTTP sur /health
+          # TODO 3 (partie 3.4) : déclarer requests (cpu 100m, memory 64Mi) et limits (cpu 500m, memory 256Mi)
+          securityContext:
+            allowPrivilegeEscalation: false

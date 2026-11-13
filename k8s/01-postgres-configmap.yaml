@@ -1,0 +1,8 @@
+# Configuration NON sensible, partagée par la base de données et l'application web.
+apiVersion: v1
+kind: # TODO : quel type d'objet ?
+metadata:
+  name: postgres-config
+  namespace: students
+data:
+  # TODO : déclarer POSTGRES_DB (mydb) et POSTGRES_USER (postgres)
